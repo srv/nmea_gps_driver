@@ -105,7 +105,7 @@ if __name__ == "__main__":
     gpsVel.header.frame_id = frame_id
     GPSLock = False
     try:
-        GPS = serial.Serial(port=GPSport, baudrate=GPSrate, timeout=2)
+        GPS = serial.Serial(port=GPSport, baudrate=GPSrate, timeout=2, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE)
         #Read in GPS
         while not rospy.is_shutdown():
             #read GPS line
@@ -168,6 +168,13 @@ if __name__ == "__main__":
                     #Use GGA
                     #No /vel output from just GGA
                     if 'GGA' in fields[0]:
+                        # Check NMEA fields
+                        if not fields[6] or not fields[2][0:2] or not fields[2][2:] or not fields[4][0:3] or \
+                           not fields[4][3:] or not fields[4][3:] or not fields[8] or not fields[9] or \
+                           not fields[11] or not fields[1]:
+                            rospy.logwarn("No GPS Data Available....")
+                            continue
+
                         gps_quality = int(fields[6])
                         if gps_quality == 0:
                             navData.status.status = NavSatStatus.STATUS_NO_FIX
@@ -184,7 +191,6 @@ if __name__ == "__main__":
                         navData.status.service = NavSatStatus.SERVICE_GPS
 
                         navData.header.stamp = timeNow
-
                         latitude = float(fields[2][0:2]) + float(fields[2][2:])/60
                         if fields[3] == 'S':
                             latitude = -latitude
@@ -214,5 +220,6 @@ if __name__ == "__main__":
             except ValueError as e:
                 rospy.logwarn("Value error, likely due to missing fields in the NMEA messages. Error was: %s" % e)
 
-    except rospy.ROSInterruptException:
+    except rospy.ROSInterruptException as e:
+        rospy.logerr("Error while processing the gps signals. Error was: %s" % e)
         GPS.close() #Close GPS serial port
