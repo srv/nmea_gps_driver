@@ -112,7 +112,7 @@ if __name__ == "__main__":
             data = GPS.readline()
 
             if not check_checksum(data):
-                rospy.logerr("Received a sentence with an invalid checksum. Sentence was: %s" % data)
+                rospy.logerr("[GPS]: Received a sentence with an invalid checksum. Sentence was: %s" % data)
                 continue
 
             timeNow = rospy.get_rostime()
@@ -172,7 +172,7 @@ if __name__ == "__main__":
                         if not fields[6] or not fields[2][0:2] or not fields[2][2:] or not fields[4][0:3] or \
                            not fields[4][3:] or not fields[4][3:] or not fields[8] or not fields[9] or \
                            not fields[11] or not fields[1]:
-                            rospy.logwarn("No GPS Data Available....")
+                            rospy.logwarn("[GPS]: No GPS Data Available....")
                             continue
 
                         gps_quality = int(fields[6])
@@ -218,8 +218,8 @@ if __name__ == "__main__":
                         gpspub.publish(navData)
                         gpstimePub.publish(gpstime)
             except ValueError as e:
-                rospy.logwarn("Value error, likely due to missing fields in the NMEA messages. Error was: %s" % e)
+                rospy.logwarn("[GPS]: Value error, likely due to missing fields in the NMEA messages. Error was: %s" % e)
 
     except rospy.ROSInterruptException as e:
-        rospy.logerr("Error while processing the gps signals. Error was: %s" % e)
+        rospy.logerr("[GPS]: Error while processing the gps signals. Error was: %s" % e)
         GPS.close() #Close GPS serial port
